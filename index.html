@@ -232,14 +232,14 @@
                     window.selfReflections = data.reflections || [];
                     window.userFacts = data.facts || [];
                     addLog("システム", "クラウドからの記憶のダウンロードが完了しました！", "sys");
-                    const msg = "おっ！以前の記憶バッチリ思い出したぜ！";
+                    const msg = "同期完了";
                     addLog("ライト", msg, "ai");
                     window.speak(msg);
                 } else {
                     window.selfReflections = [];
                     window.userFacts = [];
                     addLog("システム", "新しい合言葉です。新しい記憶データベースを作成しました。", "sys");
-                    const msg = "よろしくな！あたしはライトだぜ！";
+                    const msg = "よろしくな！";
                     addLog("ライト", msg, "ai");
                     window.speak(msg);
                 }
