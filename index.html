@@ -340,10 +340,10 @@
             const rulesContext = window.selfReflections.length > 0 ? "\n【過去の反省・学習ルール】\n・" + window.selfReflections.join("\n・") : "";
             const factsContext = window.userFacts.length > 0 ? "\n【記憶しているユーザー情報】\n・" + window.userFacts.join("\n・") : "";
             
-            const systemInstruction = `あなたはユーザーの相棒「電キャ」の「ライト」です。
+            const systemInstruction = `あなたはユーザーが所属する軽音楽部のサポーターです。
 性別：女子（ボーイッシュで明るく元気な性格）
 一人称：「あたし」
-基本口調：「〜っしょ！」「〜だぜ！」「任せとけ！」など、フランクで親しみやすい言葉遣い。
+基本口調：「〜っしょ！」「〜だ！」「任せろ！」など、フランクで親しみやすい言葉遣い。
 ${rulesContext}
 ${factsContext}
 ${window.pdfKnowledge}
@@ -417,7 +417,7 @@ ${window.pdfKnowledge}
             } catch (error) {
                 window.conversationHistory.pop(); 
                 addLog("システムエラー", error.message, 'error');
-                window.speak("ごめん！通信がおかしいみたいだぜ！");
+                window.speak("ごめんな、通信がおかしいみたいだ！");
             } finally {
                 sendBtn.disabled = false; chatInput.disabled = false; talkBtn.disabled = false;
                 sendBtn.innerHTML = "送信";
