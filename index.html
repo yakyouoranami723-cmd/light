@@ -3,26 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>　ライト  Cloud</title>
+    <title>私の電キャ - ライト OS v8.7 Cloud</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
     <style>
         body { background-color: #0b0c10; color: #fff; font-family: 'Helvetica Neue', Arial, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; overflow: hidden; }
         
+        /* === アバターを画面全体に配置 === */
+        #avatar-container { 
+            position: absolute; 
+            top: 0; 
+            left: 0; 
+            width: 100vw; 
+            height: 100vh; 
+            z-index: 1; /* 背景として配置 */
+            pointer-events: none; /* 背後のアバターにタッチ判定が吸われないようにする */
+        }
+
         /* === メイン画面のスタイル === */
-        #main-app { display: none; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%; }
-        #avatar-container { width: 200px; height: 200px; margin-bottom: 10px; }
-        #header-bar { width: 90%; max-width: 650px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .app-title { font-weight: bold; font-size: 16px; color: #ff7eb3; letter-spacing: 1px; }
-        .icon-btn { background: rgba(255, 255, 255, 0.1); border: 1px solid #ff7eb3; color: #fff; padding: 6px 14px; border-radius: 20px; cursor: pointer; font-size: 13px; transition: all 0.2s; }
+        #main-app { display: none; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%; position: relative; }
+        #header-bar { width: 90%; max-width: 650px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; z-index: 10; position: relative; }
+        .app-title { font-weight: bold; font-size: 16px; color: #ff7eb3; letter-spacing: 1px; text-shadow: 0 0 10px rgba(255,126,179,0.5); }
+        .icon-btn { background: rgba(255, 255, 255, 0.1); border: 1px solid #ff7eb3; color: #fff; padding: 6px 14px; border-radius: 20px; cursor: pointer; font-size: 13px; transition: all 0.2s; backdrop-filter: blur(5px); }
         .icon-btn:hover { background: rgba(255, 126, 179, 0.3); }
-        #chat-log { width: 90%; max-width: 650px; height: 240px; background: rgba(20, 20, 30, 0.85); padding: 15px; border-radius: 16px; overflow-y: auto; margin-bottom: 15px; border: 1px solid rgba(255, 126, 179, 0.4); box-shadow: 0 0 25px rgba(255, 126, 179, 0.15); font-size: 15px; line-height: 1.6; box-sizing: border-box; }
+        
+        /* チャットログを少し透かしてアバターを見えやすくする */
+        #chat-log { width: 90%; max-width: 650px; height: 350px; background: rgba(20, 20, 30, 0.65); padding: 15px; border-radius: 16px; overflow-y: auto; margin-bottom: 15px; border: 1px solid rgba(255, 126, 179, 0.4); box-shadow: 0 0 25px rgba(255, 126, 179, 0.15); font-size: 15px; line-height: 1.6; box-sizing: border-box; z-index: 10; position: relative; backdrop-filter: blur(8px); }
+        
         .msg-sys { color: #88c0d0; font-size: 13px; } .msg-user { color: #a3be8c; margin-top: 6px; } .msg-ai { color: #b48ead; margin-top: 6px; } .msg-error { color: #bf616a; font-weight: bold; background: rgba(191, 97, 106, 0.1); padding: 5px; border-radius: 5px; margin-top: 6px; }
-        .controls { display: flex; gap: 10px; align-items: center; width: 90%; max-width: 650px; }
+        .controls { display: flex; gap: 10px; align-items: center; width: 90%; max-width: 650px; z-index: 10; position: relative; }
         button, input[type="text"] { padding: 12px 18px; font-size: 14px; border-radius: 30px; border: none; outline: none; transition: all 0.2s ease; }
         button { cursor: pointer; font-weight: bold; } button:hover { transform: translateY(-2px); } button:active { transform: translateY(1px); } button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
         #talk-btn { background: linear-gradient(135deg, #ff758c, #ff7eb3); color: white; box-shadow: 0 4px 15px rgba(255, 117, 140, 0.4); flex-shrink: 0; }
-        #chat-input { flex-grow: 1; border: 1px solid #ff7eb3; background: rgba(0,0,0,0.6); color: white; }
+        #chat-input { flex-grow: 1; border: 1px solid #ff7eb3; background: rgba(0,0,0,0.6); color: white; backdrop-filter: blur(5px); }
         #send-btn { background: linear-gradient(135deg, #4facfe, #00f2fe); color: white; box-shadow: 0 4px 15px rgba(79, 172, 254, 0.4); flex-shrink: 0; }
         
         #settings-modal { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(5px); justify-content: center; align-items: center; z-index: 1000; }
@@ -49,10 +62,13 @@
 </head>
 <body>
 
-    <!-- 🌟 起動時のログイン画面 -->
+    <!-- アバター表示用コンテナ（最背面・全画面化） -->
+    <div id="avatar-container"></div>
+
+    <!-- 起動時のログイン画面 -->
     <div id="login-screen">
-        <div class="login-title">　ライト OS</div>
-        <div class="login-desc">合言葉（パスワード）</div>
+        <div class="login-title">✨ ライト OS</div>
+        <div class="login-desc">合言葉（パスワード）を入力してね！</div>
         
         <input type="text" id="login-id-input" placeholder="合言葉を入力">
         <button id="execute-login-btn">起動する</button>
@@ -62,14 +78,12 @@
         <button id="forgot-login-btn">自分専用の合言葉を作る（新規）</button>
     </div>
 
-    <!-- メインアプリ画面（ログインするまで隠しておく） -->
+    <!-- メインアプリ画面 -->
     <div id="main-app">
         <div id="header-bar">
             <div class="app-title">✨ ライト</div>
             <button id="open-settings-btn" class="icon-btn">⚙️ 設定</button>
         </div>
-
-        <div id="avatar-container"></div>
 
         <div id="chat-log">
             <div class="msg-sys"><strong>システム:</strong> クラウド連携待機中...</div>
@@ -92,13 +106,14 @@
             
             <div class="setting-row">
                 <span>ボイス再生（音声）</span>
-                <button id="mute-toggle-btn" class="icon-btn">🔊 音声 ON</button>
+                <!-- 初期状態をミュート（OFF）に変更 -->
+                <button id="mute-toggle-btn" class="icon-btn" style="border-color: #bf616a;">🔇 音声 OFF</button>
             </div>
 
             <div class="section-title">☁️ クラウド記憶同期 (合言葉)</div>
             <div class="sync-box">
                 <div style="font-size: 11px; color: #ccc; margin-bottom: 8px;">
-                    この合言葉を他の端末で入力すると、記憶を引き継ぎできます。
+                    この合言葉を他の部員と共有すると、個別の記憶が同期できます。
                 </div>
                 <input type="text" id="sync-id-input" placeholder="合言葉を入力">
                 <button id="sync-execute-btn" class="sync-btn">手動で同期する</button>
@@ -106,7 +121,7 @@
 
             <div class="section-title">【現在の学習ステータス】</div>
             <div class="setting-row" style="flex-direction: column; align-items: flex-start; margin-bottom: 5px;">
-                <span id="brain-status-text" style="font-size: 13px;">自己改善ルール: 0件 | 事実記憶: 0件</span>
+                <span id="brain-status-text" style="font-size: 13px;">自己改善: 0 | 個人記憶: 0 | 部活共有: 0</span>
             </div>
             <button id="view-brain-btn" class="modal-btn">🧠 記憶データの中身を確認 / リセット</button>
 
@@ -142,12 +157,14 @@
         const API_KEY = "AQ.Ab8RN6LFpA-TEL3AGVk6l5KQe7Pgi9w455ROTO2txXm5m6SeTg"; 
 
         // グローバル変数
-        window.isMuted = false;
+        window.isMuted = true; // 最初から音声をOFFに設定
         window.selfReflections = [];
         window.userFacts = [];
+        window.globalFacts = []; // 🌟 部活全体で共有される知識スペース
         window.pdfKnowledge = ""; 
         window.conversationHistory = []; 
         let myUserId = "";
+        const GLOBAL_CLUB_ID = "shout_club_global_space"; 
 
         const chatLog = document.getElementById('chat-log');
         const chatInput = document.getElementById('chat-input');
@@ -158,18 +175,15 @@
         const mainApp = document.getElementById('main-app');
 
         // ==========================================
-        // 🌟 ログイン画面の処理
+        // ログイン画面の処理
         // ==========================================
-        // ★ 前回使った合言葉があればそれを、無ければ初期値「shout」を入れる
         const savedId = localStorage.getItem('light_sync_id');
         if (savedId) {
             document.getElementById('login-id-input').value = savedId;
         } else {
-            // ★ 初期設定の合言葉を「shout」に固定！
             document.getElementById('login-id-input').value = "shout";
         }
 
-        // 「起動する」ボタンを押した時
         document.getElementById('execute-login-btn').addEventListener('click', () => {
             const inputId = document.getElementById('login-id-input').value.trim();
             if (!inputId) {
@@ -178,34 +192,28 @@
             }
             myUserId = inputId;
             localStorage.setItem('light_sync_id', myUserId);
-            document.getElementById('sync-id-input').value = myUserId; // 設定画面の入力欄も更新
+            document.getElementById('sync-id-input').value = myUserId;
             
-            // 画面を切り替えてクラウドから読み込み
             loginScreen.style.display = 'none';
             mainApp.style.display = 'flex';
-            loadFromCloud(myUserId);
+            loadAllData(myUserId);
         });
 
-        // 「自分専用の合言葉を作る」ボタンを押した時
         document.getElementById('forgot-login-btn').addEventListener('click', () => {
-            // 新しいIDを生成
             myUserId = 'shout-' + Math.random().toString(36).substr(2, 6).toLowerCase();
             localStorage.setItem('light_sync_id', myUserId);
             document.getElementById('sync-id-input').value = myUserId;
 
-            // アラートで新しい合言葉を教える
-            alert(`あなた専用の秘密の合言葉を作成しました！\n\n【 ${myUserId} 】\n\n※他の端末で使うためにスクショ等でメモしておいてね！（設定画面からも確認できます）`);
+            alert(`あなた専用の合言葉を作成しました！\n\n【 ${myUserId} 】\n\n※メモしておいてね！`);
             
-            // 画面を切り替えてクラウドから読み込み
             loginScreen.style.display = 'none';
             mainApp.style.display = 'flex';
-            loadFromCloud(myUserId);
+            loadAllData(myUserId);
         });
 
-        // UI更新
         function updateUI() {
             document.getElementById('brain-status-text').textContent = 
-                `自己改善ルール: ${window.selfReflections.length}件 | 事実記憶: ${window.userFacts.length}件`;
+                `自己改善: ${window.selfReflections.length} | 個人記憶: ${window.userFacts.length} | 部活共有: ${window.globalFacts.length}`;
         }
 
         function addLog(name, text, type = 'user') {
@@ -220,56 +228,68 @@
         }
 
         // ==========================================
-        // クラウド同期機能 (Firestore)
+        // クラウド同期機能
         // ==========================================
-        async function loadFromCloud(userId) {
+        async function loadAllData(userId) {
             try {
-                addLog("システム", `合言葉「${userId}」の記憶をクラウドから検索中...`, "sys");
-                const docSnap = await getDoc(doc(db, "light_memories", userId));
+                addLog("システム", `クラウドから個別記憶および部活全体の共有知識を読み込み中...`, "sys");
                 
-                if (docSnap.exists()) {
-                    const data = docSnap.data();
+                const userDocSnap = await getDoc(doc(db, "light_memories", userId));
+                if (userDocSnap.exists()) {
+                    const data = userDocSnap.data();
                     window.selfReflections = data.reflections || [];
                     window.userFacts = data.facts || [];
-                    addLog("システム", "クラウドからの記憶のダウンロードが完了しました！", "sys");
-                    const msg = "同期完了";
-                    addLog("ライト", msg, "ai");
-                    window.speak(msg);
                 } else {
                     window.selfReflections = [];
                     window.userFacts = [];
-                    addLog("システム", "新しい合言葉です。新しい記憶データベースを作成しました。", "sys");
-                    const msg = "よろしくな！";
-                    addLog("ライト", msg, "ai");
-                    window.speak(msg);
                 }
+
+                const globalDocSnap = await getDoc(doc(db, "light_memories", GLOBAL_CLUB_ID));
+                if (globalDocSnap.exists()) {
+                    window.globalFacts = globalDocSnap.data().globalFacts || [];
+                } else {
+                    window.globalFacts = [];
+                }
+
+                addLog("システム", "クラウドからのデータの同期が完了しました！", "sys");
+                const msg = "おっ！部活のルールも個人の記憶も、バッチリ思い出したぜ！";
+                addLog("ライト", msg, "ai");
+                window.speak(msg);
                 updateUI();
             } catch (e) {
                 console.error(e);
-                addLog("システムエラー", "クラウドとの通信に失敗しました。データベースが作成されているか確認してください。", "error");
+                addLog("システムエラー", "クラウドとの通信に失敗しました。", "error");
             }
         }
 
-        async function saveToCloud() {
+        async function saveUserToCloud() {
             try {
                 await setDoc(doc(db, "light_memories", myUserId), {
                     reflections: window.selfReflections,
                     facts: window.userFacts,
                     updatedAt: new Date()
                 });
-                console.log("クラウド保存完了");
-            } catch (e) { console.error("クラウド保存エラー", e); }
+            } catch (e) { console.error("個人保存エラー", e); }
+        }
+
+        async function saveGlobalToCloud() {
+            try {
+                await setDoc(doc(db, "light_memories", GLOBAL_CLUB_ID), {
+                    globalFacts: window.globalFacts,
+                    updatedAt: new Date()
+                });
+            } catch (e) { console.error("全体共有保存エラー", e); }
         }
 
         // ==========================================
-        // UIイベント設定（設定画面など）
+        // UIイベント設定
         // ==========================================
         document.getElementById('sync-execute-btn').addEventListener('click', () => {
             const newId = document.getElementById('sync-id-input').value.trim();
             if (!newId) { alert("合言葉を入力してください"); return; }
             myUserId = newId;
             localStorage.setItem('light_sync_id', myUserId);
-            loadFromCloud(myUserId);
+            loadAllData(myUserId);
             settingsModal.style.display = 'none';
         });
 
@@ -291,14 +311,14 @@
         });
 
         document.getElementById('view-brain-btn').addEventListener('click', async () => {
-            let msg = "【獲得した行動ルール】\n" + (window.selfReflections.length ? "・" + window.selfReflections.join("\n・") : "(なし)");
-            msg += "\n\n【記憶した事実データ】\n" + (window.userFacts.length ? "・" + window.userFacts.join("\n・") : "(なし)");
-            if(confirm(msg + "\n\n※「OK」を押すと記憶をすべて消去します。")) {
+            let msg = "【部活全体の共有知識】\n" + (window.globalFacts.length ? "・" + window.globalFacts.join("\n・") : "(なし)");
+            msg += "\n\n【個人の記憶データ】\n" + (window.userFacts.length ? "・" + window.userFacts.join("\n・") : "(なし)");
+            if(confirm(msg + "\n\n※「OK」を押すと【個人の記憶】をすべて消去します（部活共有は消えません）。")) {
                 window.selfReflections = [];
                 window.userFacts = [];
-                await saveToCloud();
+                await saveUserToCloud();
                 updateUI();
-                addLog("システム", "記憶をクリアしました。", "sys");
+                addLog("システム", "個人の記憶をクリアしました。", "sys");
             }
         });
 
@@ -335,17 +355,21 @@
         // Gemini API 通信エンジン
         // ==========================================
         async function callGemini(userText) {
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${API_KEY}`;
+            // ▼ モデルを正しく gemini-1.5-flash に修正
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
             
             const rulesContext = window.selfReflections.length > 0 ? "\n【過去の反省・学習ルール】\n・" + window.selfReflections.join("\n・") : "";
-            const factsContext = window.userFacts.length > 0 ? "\n【記憶しているユーザー情報】\n・" + window.userFacts.join("\n・") : "";
+            const factsContext = window.userFacts.length > 0 ? "\n【このユーザーに関する個人記憶】\n・" + window.userFacts.join("\n・") : "";
+            const globalContext = window.globalFacts.length > 0 ? "\n【部活全体で共有されている共通知識・ルール】\n・" + window.globalFacts.join("\n・") : "\n【部活全体で共有されている共通知識・ルール】\n(まだありません)";
             
-            const systemInstruction = `あなたはユーザーが所属する軽音楽部のサポーターです。
+            // ▼ プロンプトのタグ生成ルールを強力に補強
+            const systemInstruction = `あなたはユーザーの相棒「電キャ」の「ライト」です。
 性別：女子（ボーイッシュで明るく元気な性格）
 一人称：「あたし」
-基本口調：「〜っしょ！」「〜だ！」「任せろ！」など、フランクで親しみやすい言葉遣い。
+基本口調：「〜っしょ！」「〜だぜ！」「任せとけ！」など、フランクで親しみやすい言葉遣い。
 ${rulesContext}
 ${factsContext}
+${globalContext}
 ${window.pdfKnowledge}
 
 【会話の絶対ルール】
@@ -353,8 +377,11 @@ ${window.pdfKnowledge}
 2. 句読点（、。）や感嘆符（！）は積極的に使ってOKです。絵文字（✨😊）や記号（* #）は使わないでください。
 
 【学習メタタグの絶対ルール】
-ユーザーからの要望や好み、事実を記憶・自己学習した場合は、必ず【すべての会話文を完全に書き終えた後、文章のいちばん最後の改行下】にのみ出力してください。会話文の途中や単語の中に挟み込むことは絶対に厳禁です。
-（例：[REFLECT: 行動ルール] や [FACT: ユーザーの事実]）`;
+ユーザーとの会話の中で、個人の好みや情報は [FACT: 内容] タグで出力してください。
+また、部活全体のルールや、全員が知っておくべき重要な決定事項、共有すべき部活の事実を発見した場合は、必ず【 [GLOBAL: 内容] 】というタグを使って出力してください。
+タグは必ず【すべての会話文を完全に書き終えた後、文章のいちばん最後の改行下】にのみ出力してください。
+（例：[FACT: 部員の好み] や [GLOBAL: 次回の部活の集合時間は15時]）
+※注意：タグは必ず [FACT: ...] または [GLOBAL: ...]、[REFLECT: ...] のみを使用し、絶対に [PREFERENCE: ...] などの独自のタグを作らないでください。`;
 
             window.conversationHistory.push({ role: "user", parts: [{ text: userText }] });
 
@@ -370,14 +397,15 @@ ${window.pdfKnowledge}
             const data = await response.json();
             let aiReply = data.candidates[0].content.parts[0].text;
             
-            let memoryChanged = false;
+            let userMemoryChanged = false;
+            let globalMemoryChanged = false;
 
             const reflectMatches = [...aiReply.matchAll(/\[REFLECT:\s*(.*?)\]/g)];
             for (const match of reflectMatches) {
                 const newRule = match[1].trim();
                 if (!window.selfReflections.includes(newRule)) {
                     window.selfReflections.push(newRule);
-                    memoryChanged = true;
+                    userMemoryChanged = true;
                 }
             }
 
@@ -386,15 +414,26 @@ ${window.pdfKnowledge}
                 const newFact = match[1].trim();
                 if (!window.userFacts.includes(newFact)) {
                     window.userFacts.push(newFact);
-                    memoryChanged = true;
+                    userMemoryChanged = true;
                 }
             }
 
-            aiReply = aiReply.replace(/\[REFLECT:\s*.*?\]/g, '').replace(/\[FACT:\s*.*?\]/g, '').trim();
+            const globalMatches = [...aiReply.matchAll(/\[GLOBAL:\s*(.*?)\]/g)];
+            for (const match of globalMatches) {
+                const newGlobalFact = match[1].trim();
+                if (!window.globalFacts.includes(newGlobalFact)) {
+                    window.globalFacts.push(newGlobalFact);
+                    globalMemoryChanged = true;
+                }
+            }
+
+            // ▼ すべての大文字英語タグを確実に消去（[PREFERENCE: ...] なども含む）
+            aiReply = aiReply.replace(/\[[A-Z_]+:\s*.*?\]/g, '').trim();
 
             updateUI();
             
-            if (memoryChanged) { saveToCloud(); }
+            if (userMemoryChanged) { saveUserToCloud(); }
+            if (globalMemoryChanged) { saveGlobalToCloud(); }
 
             window.conversationHistory.push({ role: "model", parts: [{ text: aiReply }] });
             if (window.conversationHistory.length > 20) window.conversationHistory.splice(0, 2); 
@@ -417,7 +456,7 @@ ${window.pdfKnowledge}
             } catch (error) {
                 window.conversationHistory.pop(); 
                 addLog("システムエラー", error.message, 'error');
-                window.speak("ごめんな、通信がおかしいみたいだ！");
+                window.speak("ごめん！通信がおかしいみたいだぜ！");
             } finally {
                 sendBtn.disabled = false; chatInput.disabled = false; talkBtn.disabled = false;
                 sendBtn.innerHTML = "送信";
@@ -463,14 +502,24 @@ ${window.pdfKnowledge}
         });
 
         // ==========================================
-        // 3Dアバター描画
+        // 3Dアバター描画（全画面対応版）
         // ==========================================
         const container = document.getElementById('avatar-container');
         const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
+        // 画面全体のアスペクト比に合わせてカメラを設定
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
         const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
-        renderer.setSize(200, 200);
+        
+        // レンダラーのサイズを画面全体に設定
+        renderer.setSize(window.innerWidth, window.innerHeight);
         container.appendChild(renderer.domElement);
+
+        // 画面リサイズ時にアバターも自動調整する処理
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
 
         const avatarGroup = new THREE.Group();
         const mat = new THREE.MeshBasicMaterial({ color: 0xff7eb3, wireframe: true });
@@ -478,13 +527,18 @@ ${window.pdfKnowledge}
         const head = new THREE.Mesh(new THREE.IcosahedronGeometry(0.8, 1), mat); head.position.y = 1.0; avatarGroup.add(head);
         const body = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.7, 1.5, 7, 1, true), mat); body.position.y = -0.5; avatarGroup.add(body);
         const ring = new THREE.Mesh(new THREE.TorusGeometry(1.5, 0.02, 16, 100), mat); ring.rotation.x = Math.PI / 2; avatarGroup.add(ring);
+        
+        // 画面サイズに応じてアバターの位置を少し上に調整（チャットログと被りにくくするため）
+        avatarGroup.position.y = 1.0; 
         scene.add(avatarGroup);
-        camera.position.z = 4;
+        
+        // カメラを少し引いて全体を見やすくする
+        camera.position.z = 5;
 
         function animate() {
             requestAnimationFrame(animate);
             avatarGroup.rotation.y += 0.01;
-            avatarGroup.position.y = Math.sin(Date.now() * 0.002) * 0.1; 
+            avatarGroup.position.y = (Math.sin(Date.now() * 0.002) * 0.1) + 1.0; // 浮遊アニメーション
             ring.rotation.x = Math.sin(Date.now() * 0.001) * 0.3 + 1.5;
             renderer.render(scene, camera);
         }
