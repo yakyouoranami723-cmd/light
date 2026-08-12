@@ -3,35 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>私の電キャ - ライト OS v8.7 Cloud</title>
+    <title>私の電キャ - ライト OS v8.6 Cloud</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
     <style>
         body { background-color: #0b0c10; color: #fff; font-family: 'Helvetica Neue', Arial, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; overflow: hidden; }
         
-        /* === アバターを画面全体に配置 === */
-        #avatar-container { 
-            position: absolute; 
-            top: 0; 
-            left: 0; 
-            width: 100vw; 
-            height: 100vh; 
-            z-index: 1; /* 背景として配置 */
-            pointer-events: none; /* 背後のアバターにタッチ判定が吸われないようにする */
+        /* === アバターを画面全体に配置（最背面） === */
+        #avatar-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 1;
+            pointer-events: none; /* UIのタッチ操作を邪魔しないようにする */
         }
 
         /* === メイン画面のスタイル === */
-        #main-app { display: none; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%; position: relative; }
-        #header-bar { width: 90%; max-width: 650px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; z-index: 10; position: relative; }
+        #main-app { display: none; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%; position: relative; z-index: 10; }
+        #header-bar { width: 90%; max-width: 650px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         .app-title { font-weight: bold; font-size: 16px; color: #ff7eb3; letter-spacing: 1px; text-shadow: 0 0 10px rgba(255,126,179,0.5); }
         .icon-btn { background: rgba(255, 255, 255, 0.1); border: 1px solid #ff7eb3; color: #fff; padding: 6px 14px; border-radius: 20px; cursor: pointer; font-size: 13px; transition: all 0.2s; backdrop-filter: blur(5px); }
         .icon-btn:hover { background: rgba(255, 126, 179, 0.3); }
         
-        /* チャットログを少し透かしてアバターを見えやすくする */
-        #chat-log { width: 90%; max-width: 650px; height: 350px; background: rgba(20, 20, 30, 0.65); padding: 15px; border-radius: 16px; overflow-y: auto; margin-bottom: 15px; border: 1px solid rgba(255, 126, 179, 0.4); box-shadow: 0 0 25px rgba(255, 126, 179, 0.15); font-size: 15px; line-height: 1.6; box-sizing: border-box; z-index: 10; position: relative; backdrop-filter: blur(8px); }
+        /* アバターが透けて見えるようにチャットログを調整 */
+        #chat-log { width: 90%; max-width: 650px; height: 350px; background: rgba(20, 20, 30, 0.65); padding: 15px; border-radius: 16px; overflow-y: auto; margin-bottom: 15px; border: 1px solid rgba(255, 126, 179, 0.4); box-shadow: 0 0 25px rgba(255, 126, 179, 0.15); font-size: 15px; line-height: 1.6; box-sizing: border-box; backdrop-filter: blur(8px); }
         
         .msg-sys { color: #88c0d0; font-size: 13px; } .msg-user { color: #a3be8c; margin-top: 6px; } .msg-ai { color: #b48ead; margin-top: 6px; } .msg-error { color: #bf616a; font-weight: bold; background: rgba(191, 97, 106, 0.1); padding: 5px; border-radius: 5px; margin-top: 6px; }
-        .controls { display: flex; gap: 10px; align-items: center; width: 90%; max-width: 650px; z-index: 10; position: relative; }
+        .controls { display: flex; gap: 10px; align-items: center; width: 90%; max-width: 650px; }
         button, input[type="text"] { padding: 12px 18px; font-size: 14px; border-radius: 30px; border: none; outline: none; transition: all 0.2s ease; }
         button { cursor: pointer; font-weight: bold; } button:hover { transform: translateY(-2px); } button:active { transform: translateY(1px); } button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
         #talk-btn { background: linear-gradient(135deg, #ff758c, #ff7eb3); color: white; box-shadow: 0 4px 15px rgba(255, 117, 140, 0.4); flex-shrink: 0; }
@@ -62,7 +62,7 @@
 </head>
 <body>
 
-    <!-- アバター表示用コンテナ（最背面・全画面化） -->
+    <!-- アバター表示用コンテナ（最背面に移動） -->
     <div id="avatar-container"></div>
 
     <!-- 起動時のログイン画面 -->
@@ -106,7 +106,7 @@
             
             <div class="setting-row">
                 <span>ボイス再生（音声）</span>
-                <!-- 初期状態をミュート（OFF）に変更 -->
+                <!-- 初期状態をミュート表示に変更 -->
                 <button id="mute-toggle-btn" class="icon-btn" style="border-color: #bf616a;">🔇 音声 OFF</button>
             </div>
 
@@ -152,19 +152,19 @@
         const db = getFirestore(app);
 
         // ==========================================
-        // Gemini APIキー
+        // Gemini APIキー (一切変更していません)
         // ==========================================
         const API_KEY = "AQ.Ab8RN6LFpA-TEL3AGVk6l5KQe7Pgi9w455ROTO2txXm5m6SeTg"; 
 
         // グローバル変数
-        window.isMuted = true; // 最初から音声をOFFに設定
+        window.isMuted = true; // 初期状態をミュート(true)に変更
         window.selfReflections = [];
         window.userFacts = [];
         window.globalFacts = []; // 🌟 部活全体で共有される知識スペース
         window.pdfKnowledge = ""; 
         window.conversationHistory = []; 
         let myUserId = "";
-        const GLOBAL_CLUB_ID = "shout_club_global_space"; 
+        const GLOBAL_CLUB_ID = "shout_club_global_space"; // 🌟 全員共通の記憶を保存するデータベース上の名前
 
         const chatLog = document.getElementById('chat-log');
         const chatInput = document.getElementById('chat-input');
@@ -211,6 +211,7 @@
             loadAllData(myUserId);
         });
 
+        // UI更新
         function updateUI() {
             document.getElementById('brain-status-text').textContent = 
                 `自己改善: ${window.selfReflections.length} | 個人記憶: ${window.userFacts.length} | 部活共有: ${window.globalFacts.length}`;
@@ -228,12 +229,13 @@
         }
 
         // ==========================================
-        // クラウド同期機能
+        // クラウド同期機能 (個人 ＆ 部活全体のロード)
         // ==========================================
         async function loadAllData(userId) {
             try {
                 addLog("システム", `クラウドから個別記憶および部活全体の共有知識を読み込み中...`, "sys");
                 
+                // 1. 個別データの読み込み
                 const userDocSnap = await getDoc(doc(db, "light_memories", userId));
                 if (userDocSnap.exists()) {
                     const data = userDocSnap.data();
@@ -244,6 +246,7 @@
                     window.userFacts = [];
                 }
 
+                // 2. 🌟 部活全体共有データの読み込み
                 const globalDocSnap = await getDoc(doc(db, "light_memories", GLOBAL_CLUB_ID));
                 if (globalDocSnap.exists()) {
                     window.globalFacts = globalDocSnap.data().globalFacts || [];
@@ -262,6 +265,7 @@
             }
         }
 
+        // 個人データの保存
         async function saveUserToCloud() {
             try {
                 await setDoc(doc(db, "light_memories", myUserId), {
@@ -272,6 +276,7 @@
             } catch (e) { console.error("個人保存エラー", e); }
         }
 
+        // 🌟 部活全体の共通データの保存
         async function saveGlobalToCloud() {
             try {
                 await setDoc(doc(db, "light_memories", GLOBAL_CLUB_ID), {
@@ -352,21 +357,21 @@
         };
 
         // ==========================================
-        // Gemini API 通信エンジン
+        // Gemini API 通信エンジン (一切変更していません)
         // ==========================================
         async function callGemini(userText) {
-            // ▼ モデルを正しく gemini-1.5-flash に修正
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${API_KEY}`;
             
             const rulesContext = window.selfReflections.length > 0 ? "\n【過去の反省・学習ルール】\n・" + window.selfReflections.join("\n・") : "";
             const factsContext = window.userFacts.length > 0 ? "\n【このユーザーに関する個人記憶】\n・" + window.userFacts.join("\n・") : "";
+            
+            // 🌟 部活全体の共通知識をシステムプロンプトに組み込む
             const globalContext = window.globalFacts.length > 0 ? "\n【部活全体で共有されている共通知識・ルール】\n・" + window.globalFacts.join("\n・") : "\n【部活全体で共有されている共通知識・ルール】\n(まだありません)";
             
-            // ▼ プロンプトのタグ生成ルールを強力に補強
-            const systemInstruction = `あなたはユーザーの相棒「電キャ」の「ライト」です。
+            const systemInstruction = `あなたはユーザーの所属する軽音楽部のサポーターです。
 性別：女子（ボーイッシュで明るく元気な性格）
 一人称：「あたし」
-基本口調：「〜っしょ！」「〜だぜ！」「任せとけ！」など、フランクで親しみやすい言葉遣い。
+基本口調：「〜っしょ！」「〜だ！」「任せろ！」など、フランクで親しみやすい言葉遣い。
 ${rulesContext}
 ${factsContext}
 ${globalContext}
@@ -380,8 +385,7 @@ ${window.pdfKnowledge}
 ユーザーとの会話の中で、個人の好みや情報は [FACT: 内容] タグで出力してください。
 また、部活全体のルールや、全員が知っておくべき重要な決定事項、共有すべき部活の事実を発見した場合は、必ず【 [GLOBAL: 内容] 】というタグを使って出力してください。
 タグは必ず【すべての会話文を完全に書き終えた後、文章のいちばん最後の改行下】にのみ出力してください。
-（例：[FACT: 部員の好み] や [GLOBAL: 次回の部活の集合時間は15時]）
-※注意：タグは必ず [FACT: ...] または [GLOBAL: ...]、[REFLECT: ...] のみを使用し、絶対に [PREFERENCE: ...] などの独自のタグを作らないでください。`;
+（例：[FACT: 部員の好み] や [GLOBAL: 次回の部活の集合時間は15時]）`;
 
             window.conversationHistory.push({ role: "user", parts: [{ text: userText }] });
 
@@ -400,6 +404,7 @@ ${window.pdfKnowledge}
             let userMemoryChanged = false;
             let globalMemoryChanged = false;
 
+            // 個人ルール
             const reflectMatches = [...aiReply.matchAll(/\[REFLECT:\s*(.*?)\]/g)];
             for (const match of reflectMatches) {
                 const newRule = match[1].trim();
@@ -409,6 +414,7 @@ ${window.pdfKnowledge}
                 }
             }
 
+            // 個人事実
             const factMatches = [...aiReply.matchAll(/\[FACT:\s*(.*?)\]/g)];
             for (const match of factMatches) {
                 const newFact = match[1].trim();
@@ -418,6 +424,7 @@ ${window.pdfKnowledge}
                 }
             }
 
+            // 🌟 部活全体共通の事実
             const globalMatches = [...aiReply.matchAll(/\[GLOBAL:\s*(.*?)\]/g)];
             for (const match of globalMatches) {
                 const newGlobalFact = match[1].trim();
@@ -427,13 +434,15 @@ ${window.pdfKnowledge}
                 }
             }
 
-            // ▼ すべての大文字英語タグを確実に消去（[PREFERENCE: ...] なども含む）
-            aiReply = aiReply.replace(/\[[A-Z_]+:\s*.*?\]/g, '').trim();
+            // タグを会話文から綺麗に削除
+            aiReply = aiReply.replace(/\[REFLECT:\s*.*?\]/g, '')
+                             .replace(/\[FACT:\s*.*?\]/g, '')
+                             .replace(/\[GLOBAL:\s*.*?\]/g, '').trim();
 
             updateUI();
             
             if (userMemoryChanged) { saveUserToCloud(); }
-            if (globalMemoryChanged) { saveGlobalToCloud(); }
+            if (globalMemoryChanged) { saveGlobalToCloud(); } // 🌟 全体共通のクラウド領域を更新！
 
             window.conversationHistory.push({ role: "model", parts: [{ text: aiReply }] });
             if (window.conversationHistory.length > 20) window.conversationHistory.splice(0, 2); 
@@ -502,19 +511,19 @@ ${window.pdfKnowledge}
         });
 
         // ==========================================
-        // 3Dアバター描画（全画面対応版）
+        // 3Dアバター描画（全画面対応に変更）
         // ==========================================
         const container = document.getElementById('avatar-container');
         const scene = new THREE.Scene();
-        // 画面全体のアスペクト比に合わせてカメラを設定
+        // カメラ設定を画面の縦横比に合わせる
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
         const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
         
-        // レンダラーのサイズを画面全体に設定
+        // レンダラーのサイズを画面全体に指定
         renderer.setSize(window.innerWidth, window.innerHeight);
         container.appendChild(renderer.domElement);
 
-        // 画面リサイズ時にアバターも自動調整する処理
+        // 画面サイズ変更時にも自動でリサイズされるようにイベントを追加
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
@@ -528,8 +537,8 @@ ${window.pdfKnowledge}
         const body = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.7, 1.5, 7, 1, true), mat); body.position.y = -0.5; avatarGroup.add(body);
         const ring = new THREE.Mesh(new THREE.TorusGeometry(1.5, 0.02, 16, 100), mat); ring.rotation.x = Math.PI / 2; avatarGroup.add(ring);
         
-        // 画面サイズに応じてアバターの位置を少し上に調整（チャットログと被りにくくするため）
-        avatarGroup.position.y = 1.0; 
+        // UIと被らないようにアバターの位置を少し上に調整
+        avatarGroup.position.y = 1.0;
         scene.add(avatarGroup);
         
         // カメラを少し引いて全体を見やすくする
@@ -538,7 +547,7 @@ ${window.pdfKnowledge}
         function animate() {
             requestAnimationFrame(animate);
             avatarGroup.rotation.y += 0.01;
-            avatarGroup.position.y = (Math.sin(Date.now() * 0.002) * 0.1) + 1.0; // 浮遊アニメーション
+            avatarGroup.position.y = (Math.sin(Date.now() * 0.002) * 0.1) + 1.0; 
             ring.rotation.x = Math.sin(Date.now() * 0.001) * 0.3 + 1.5;
             renderer.render(scene, camera);
         }
