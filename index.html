@@ -17,7 +17,7 @@
             width: 100vw;
             height: 100vh;
             z-index: 1;
-            pointer-events: none; /* UIのタッチ操作を邪魔しないようにする */
+            pointer-events: none;
         }
 
         /* === メイン画面のスタイル === */
@@ -27,7 +27,6 @@
         .icon-btn { background: rgba(255, 255, 255, 0.1); border: 1px solid #ff7eb3; color: #fff; padding: 6px 14px; border-radius: 20px; cursor: pointer; font-size: 13px; transition: all 0.2s; backdrop-filter: blur(5px); }
         .icon-btn:hover { background: rgba(255, 126, 179, 0.3); }
         
-        /* アバターが透けて見えるようにチャットログを調整 */
         #chat-log { width: 90%; max-width: 650px; height: 350px; background: rgba(20, 20, 30, 0.65); padding: 15px; border-radius: 16px; overflow-y: auto; margin-bottom: 15px; border: 1px solid rgba(255, 126, 179, 0.4); box-shadow: 0 0 25px rgba(255, 126, 179, 0.15); font-size: 15px; line-height: 1.6; box-sizing: border-box; backdrop-filter: blur(8px); }
         
         .msg-sys { color: #88c0d0; font-size: 13px; } .msg-user { color: #a3be8c; margin-top: 6px; } .msg-ai { color: #b48ead; margin-top: 6px; } .msg-error { color: #bf616a; font-weight: bold; background: rgba(191, 97, 106, 0.1); padding: 5px; border-radius: 5px; margin-top: 6px; }
@@ -62,10 +61,8 @@
 </head>
 <body>
 
-    <!-- アバター表示用コンテナ（最背面に移動） -->
     <div id="avatar-container"></div>
 
-    <!-- 起動時のログイン画面 -->
     <div id="login-screen">
         <div class="login-title">✨ ライト OS</div>
         <div class="login-desc">合言葉（パスワード）を入力してね！</div>
@@ -78,7 +75,6 @@
         <button id="forgot-login-btn">自分専用の合言葉を作る（新規）</button>
     </div>
 
-    <!-- メインアプリ画面 -->
     <div id="main-app">
         <div id="header-bar">
             <div class="app-title">✨ ライト</div>
@@ -96,7 +92,6 @@
         </div>
     </div>
 
-    <!-- 設定モーダル -->
     <div id="settings-modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -106,7 +101,6 @@
             
             <div class="setting-row">
                 <span>ボイス再生（音声）</span>
-                <!-- 初期状態をミュート表示に変更 -->
                 <button id="mute-toggle-btn" class="icon-btn" style="border-color: #bf616a;">🔇 音声 OFF</button>
             </div>
 
@@ -131,14 +125,10 @@
         </div>
     </div>
 
-    <!-- Firebase v9 (Modular) のインポート -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // ==========================================
-        // Firebaseの設定
-        // ==========================================
         const firebaseConfig = {
             apiKey: "AIzaSyChocv7osIDAf9z4b1cVcab74b15Xzoudo",
             authDomain: "light-65413.firebaseapp.com",
@@ -151,20 +141,16 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // ==========================================
-        // Gemini APIキー (一切変更していません)
-        // ==========================================
         const API_KEY = "AQ.Ab8RN6LFpA-TEL3AGVk6l5KQe7Pgi9w455ROTO2txXm5m6SeTg"; 
 
-        // グローバル変数
-        window.isMuted = true; // 初期状態をミュート(true)に変更
+        window.isMuted = true;
         window.selfReflections = [];
         window.userFacts = [];
-        window.globalFacts = []; // 🌟 部活全体で共有される知識スペース
+        window.globalFacts = [];
         window.pdfKnowledge = ""; 
         window.conversationHistory = []; 
         let myUserId = "";
-        const GLOBAL_CLUB_ID = "shout_club_global_space"; // 🌟 全員共通の記憶を保存するデータベース上の名前
+        const GLOBAL_CLUB_ID = "shout_club_global_space";
 
         const chatLog = document.getElementById('chat-log');
         const chatInput = document.getElementById('chat-input');
@@ -174,9 +160,6 @@
         const loginScreen = document.getElementById('login-screen');
         const mainApp = document.getElementById('main-app');
 
-        // ==========================================
-        // ログイン画面の処理
-        // ==========================================
         const savedId = localStorage.getItem('light_sync_id');
         if (savedId) {
             document.getElementById('login-id-input').value = savedId;
@@ -211,7 +194,6 @@
             loadAllData(myUserId);
         });
 
-        // UI更新
         function updateUI() {
             document.getElementById('brain-status-text').textContent = 
                 `自己改善: ${window.selfReflections.length} | 個人記憶: ${window.userFacts.length} | 部活共有: ${window.globalFacts.length}`;
@@ -228,14 +210,10 @@
             chatLog.scrollTop = chatLog.scrollHeight;
         }
 
-        // ==========================================
-        // クラウド同期機能 (個人 ＆ 部活全体のロード)
-        // ==========================================
         async function loadAllData(userId) {
             try {
                 addLog("システム", `クラウドから個別記憶および部活全体の共有知識を読み込み中...`, "sys");
                 
-                // 1. 個別データの読み込み
                 const userDocSnap = await getDoc(doc(db, "light_memories", userId));
                 if (userDocSnap.exists()) {
                     const data = userDocSnap.data();
@@ -246,7 +224,6 @@
                     window.userFacts = [];
                 }
 
-                // 2. 🌟 部活全体共有データの読み込み
                 const globalDocSnap = await getDoc(doc(db, "light_memories", GLOBAL_CLUB_ID));
                 if (globalDocSnap.exists()) {
                     window.globalFacts = globalDocSnap.data().globalFacts || [];
@@ -265,7 +242,6 @@
             }
         }
 
-        // 個人データの保存
         async function saveUserToCloud() {
             try {
                 await setDoc(doc(db, "light_memories", myUserId), {
@@ -276,7 +252,6 @@
             } catch (e) { console.error("個人保存エラー", e); }
         }
 
-        // 🌟 部活全体の共通データの保存
         async function saveGlobalToCloud() {
             try {
                 await setDoc(doc(db, "light_memories", GLOBAL_CLUB_ID), {
@@ -286,9 +261,6 @@
             } catch (e) { console.error("全体共有保存エラー", e); }
         }
 
-        // ==========================================
-        // UIイベント設定
-        // ==========================================
         document.getElementById('sync-execute-btn').addEventListener('click', () => {
             const newId = document.getElementById('sync-id-input').value.trim();
             if (!newId) { alert("合言葉を入力してください"); return; }
@@ -327,9 +299,6 @@
             }
         });
 
-        // ==========================================
-        // 音声読み上げ
-        // ==========================================
         window.currentAudio = null; 
         window.speak = function(text) {
             if (window.isMuted) return;
@@ -356,22 +325,19 @@
             audio.onerror = fallback;
         };
 
-        // ==========================================
-        // Gemini API 通信エンジン (一切変更していません)
-        // ==========================================
         async function callGemini(userText) {
             const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${API_KEY}`;
             
             const rulesContext = window.selfReflections.length > 0 ? "\n【過去の反省・学習ルール】\n・" + window.selfReflections.join("\n・") : "";
             const factsContext = window.userFacts.length > 0 ? "\n【このユーザーに関する個人記憶】\n・" + window.userFacts.join("\n・") : "";
             
-            // 🌟 部活全体の共通知識をシステムプロンプトに組み込む
             const globalContext = window.globalFacts.length > 0 ? "\n【部活全体で共有されている共通知識・ルール】\n・" + window.globalFacts.join("\n・") : "\n【部活全体で共有されている共通知識・ルール】\n(まだありません)";
             
-            const systemInstruction = `あなたはユーザーの所属する軽音楽部のサポーターです。
+            /* プロンプト側の【 】指定を削除しました */
+            const systemInstruction = `あなたはユーザーの相棒「電キャ」の「ライト」です。
 性別：女子（ボーイッシュで明るく元気な性格）
 一人称：「あたし」
-基本口調：「〜っしょ！」「〜だ！」「任せろ！」など、フランクで親しみやすい言葉遣い。
+基本口調：「〜っしょ！」「〜だぜ！」「任せとけ！」など、フランクで親しみやすい言葉遣い。
 ${rulesContext}
 ${factsContext}
 ${globalContext}
@@ -383,7 +349,7 @@ ${window.pdfKnowledge}
 
 【学習メタタグの絶対ルール】
 ユーザーとの会話の中で、個人の好みや情報は [FACT: 内容] タグで出力してください。
-また、部活全体のルールや、全員が知っておくべき重要な決定事項、共有すべき部活の事実を発見した場合は、必ず【 [GLOBAL: 内容] 】というタグを使って出力してください。
+また、部活全体のルールや、全員が知っておくべき重要な決定事項、共有すべき部活の事実を発見した場合は、必ず [GLOBAL: 内容] というタグを使って出力してください。
 タグは必ず【すべての会話文を完全に書き終えた後、文章のいちばん最後の改行下】にのみ出力してください。
 （例：[FACT: 部員の好み] や [GLOBAL: 次回の部活の集合時間は15時]）`;
 
@@ -404,7 +370,6 @@ ${window.pdfKnowledge}
             let userMemoryChanged = false;
             let globalMemoryChanged = false;
 
-            // 個人ルール
             const reflectMatches = [...aiReply.matchAll(/\[REFLECT:\s*(.*?)\]/g)];
             for (const match of reflectMatches) {
                 const newRule = match[1].trim();
@@ -414,7 +379,6 @@ ${window.pdfKnowledge}
                 }
             }
 
-            // 個人事実
             const factMatches = [...aiReply.matchAll(/\[FACT:\s*(.*?)\]/g)];
             for (const match of factMatches) {
                 const newFact = match[1].trim();
@@ -424,7 +388,6 @@ ${window.pdfKnowledge}
                 }
             }
 
-            // 🌟 部活全体共通の事実
             const globalMatches = [...aiReply.matchAll(/\[GLOBAL:\s*(.*?)\]/g)];
             for (const match of globalMatches) {
                 const newGlobalFact = match[1].trim();
@@ -434,15 +397,17 @@ ${window.pdfKnowledge}
                 }
             }
 
-            // タグを会話文から綺麗に削除
-            aiReply = aiReply.replace(/\[REFLECT:\s*.*?\]/g, '')
-                             .replace(/\[FACT:\s*.*?\]/g, '')
-                             .replace(/\[GLOBAL:\s*.*?\]/g, '').trim();
+            /* 正規表現も強化し、余分な【】が巻き込まれても綺麗に消去するようにしました */
+            aiReply = aiReply.replace(/【?\s*\[REFLECT:\s*.*?\]\s*】?/g, '')
+                             .replace(/【?\s*\[FACT:\s*.*?\]\s*】?/g, '')
+                             .replace(/【?\s*\[GLOBAL:\s*.*?\]\s*】?/g, '')
+                             .replace(/【\s*】/g, '') 
+                             .trim();
 
             updateUI();
             
             if (userMemoryChanged) { saveUserToCloud(); }
-            if (globalMemoryChanged) { saveGlobalToCloud(); } // 🌟 全体共通のクラウド領域を更新！
+            if (globalMemoryChanged) { saveGlobalToCloud(); } 
 
             window.conversationHistory.push({ role: "model", parts: [{ text: aiReply }] });
             if (window.conversationHistory.length > 20) window.conversationHistory.splice(0, 2); 
@@ -450,9 +415,6 @@ ${window.pdfKnowledge}
             return aiReply;
         }
 
-        // ==========================================
-        // チャット & マイク & PDF イベント
-        // ==========================================
         async function processUserInput(text) {
             if (!text || !text.trim()) return;
             addLog("あなた", text, 'user');
@@ -510,20 +472,14 @@ ${window.pdfKnowledge}
             } catch (err) { addLog("システム", "PDF読み込み失敗", 'error'); }
         });
 
-        // ==========================================
-        // 3Dアバター描画（全画面対応に変更）
-        // ==========================================
         const container = document.getElementById('avatar-container');
         const scene = new THREE.Scene();
-        // カメラ設定を画面の縦横比に合わせる
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
         const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
         
-        // レンダラーのサイズを画面全体に指定
         renderer.setSize(window.innerWidth, window.innerHeight);
         container.appendChild(renderer.domElement);
 
-        // 画面サイズ変更時にも自動でリサイズされるようにイベントを追加
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
@@ -537,11 +493,9 @@ ${window.pdfKnowledge}
         const body = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.7, 1.5, 7, 1, true), mat); body.position.y = -0.5; avatarGroup.add(body);
         const ring = new THREE.Mesh(new THREE.TorusGeometry(1.5, 0.02, 16, 100), mat); ring.rotation.x = Math.PI / 2; avatarGroup.add(ring);
         
-        // UIと被らないようにアバターの位置を少し上に調整
         avatarGroup.position.y = 1.0;
         scene.add(avatarGroup);
         
-        // カメラを少し引いて全体を見やすくする
         camera.position.z = 5;
 
         function animate() {
