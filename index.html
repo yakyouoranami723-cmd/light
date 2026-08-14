@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>私の電キャ - ライト OS v8.6 Cloud</title>
+    <title> ライト OS v8.6 Cloud</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
     <style>
@@ -64,8 +64,8 @@
     <div id="avatar-container"></div>
 
     <div id="login-screen">
-        <div class="login-title">✨ ライト OS</div>
-        <div class="login-desc">合言葉（パスワード）を入力してね！</div>
+        <div class="login-title"> ライト OS</div>
+        <div class="login-desc">合言葉（パスワード）</div>
         
         <input type="text" id="login-id-input" placeholder="合言葉を入力">
         <button id="execute-login-btn">起動する</button>
@@ -77,7 +77,7 @@
 
     <div id="main-app">
         <div id="header-bar">
-            <div class="app-title">✨ ライト</div>
+            <div class="app-title"> ライト</div>
             <button id="open-settings-btn" class="icon-btn">⚙️ 設定</button>
         </div>
 
@@ -232,7 +232,7 @@
                 }
 
                 addLog("システム", "クラウドからのデータの同期が完了しました！", "sys");
-                const msg = "おっ！部活のルールも個人の記憶も、バッチリ思い出したぜ！";
+                const msg = "おつかれ〜";
                 addLog("ライト", msg, "ai");
                 window.speak(msg);
                 updateUI();
@@ -337,7 +337,7 @@
             const systemInstruction = `あなたはユーザーの相棒「電キャ」の「ライト」です。
 性別：女子（ボーイッシュで明るく元気な性格）
 一人称：「あたし」
-基本口調：「〜っしょ！」「〜だぜ！」「任せとけ！」など、フランクで親しみやすい言葉遣い。
+基本口調：「〜っしょ！」「〜だ！」「任せろ！」など、フランクで親しみやすい言葉遣い。
 ${rulesContext}
 ${factsContext}
 ${globalContext}
