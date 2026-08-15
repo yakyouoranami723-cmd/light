@@ -2,12 +2,13 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title> ライト OS v8.6 Cloud</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>私の電キャ - ライト OS v8.6 Cloud</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
     <style>
-        body { background-color: #0b0c10; color: #fff; font-family: 'Helvetica Neue', Arial, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; overflow: hidden; }
+        /* heightを100dvhに変更してスマホのキーボード表示に対応 */
+        body { background-color: #0b0c10; color: #fff; font-family: 'Helvetica Neue', Arial, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100dvh; margin: 0; overflow: hidden; }
         
         /* === アバターを画面全体に配置（最背面） === */
         #avatar-container {
@@ -27,15 +28,20 @@
         .icon-btn { background: rgba(255, 255, 255, 0.1); border: 1px solid #ff7eb3; color: #fff; padding: 6px 14px; border-radius: 20px; cursor: pointer; font-size: 13px; transition: all 0.2s; backdrop-filter: blur(5px); }
         .icon-btn:hover { background: rgba(255, 126, 179, 0.3); }
         
-        #chat-log { width: 90%; max-width: 650px; height: 350px; background: rgba(20, 20, 30, 0.65); padding: 15px; border-radius: 16px; overflow-y: auto; margin-bottom: 15px; border: 1px solid rgba(255, 126, 179, 0.4); box-shadow: 0 0 25px rgba(255, 126, 179, 0.15); font-size: 15px; line-height: 1.6; box-sizing: border-box; backdrop-filter: blur(8px); }
+        #chat-log { width: 90%; max-width: 650px; height: 350px; background: rgba(20, 20, 30, 0.65); padding: 15px; border-radius: 16px; overflow-y: auto; margin-bottom: 15px; border: 1px solid rgba(255, 126, 179, 0.4); box-shadow: 0 0 25px rgba(255, 126, 179, 0.15); font-size: 15px; line-height: 1.6; box-sizing: border-box; backdrop-filter: blur(8px); scroll-behavior: smooth; }
         
+        /* スクロールバーのカスタマイズ */
+        #chat-log::-webkit-scrollbar { width: 6px; }
+        #chat-log::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.2); border-radius: 3px; }
+        #chat-log::-webkit-scrollbar-thumb { background: rgba(255, 126, 179, 0.5); border-radius: 3px; }
+
         .msg-sys { color: #88c0d0; font-size: 13px; } .msg-user { color: #a3be8c; margin-top: 6px; } .msg-ai { color: #b48ead; margin-top: 6px; } .msg-error { color: #bf616a; font-weight: bold; background: rgba(191, 97, 106, 0.1); padding: 5px; border-radius: 5px; margin-top: 6px; }
         .controls { display: flex; gap: 10px; align-items: center; width: 90%; max-width: 650px; }
         button, input[type="text"] { padding: 12px 18px; font-size: 14px; border-radius: 30px; border: none; outline: none; transition: all 0.2s ease; }
         button { cursor: pointer; font-weight: bold; } button:hover { transform: translateY(-2px); } button:active { transform: translateY(1px); } button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
         #talk-btn { background: linear-gradient(135deg, #ff758c, #ff7eb3); color: white; box-shadow: 0 4px 15px rgba(255, 117, 140, 0.4); flex-shrink: 0; }
         #chat-input { flex-grow: 1; border: 1px solid #ff7eb3; background: rgba(0,0,0,0.6); color: white; backdrop-filter: blur(5px); }
-        #send-btn { background: linear-gradient(135deg, #4facfe, #00f2fe); color: white; box-shadow: 0 4px 15px rgba(79, 172, 254, 0.4); flex-shrink: 0; }
+        #send-btn { background: linear-gradient(135deg, #4facfe, #00f2fe); color: white; box-shadow: 0 4px 15px rgba(79, 172, 254, 0.4); flex-shrink: 0; min-width: 70px; }
         
         #settings-modal { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(5px); justify-content: center; align-items: center; z-index: 1000; }
         .modal-content { background: #161823; border: 1px solid #ff7eb3; border-radius: 16px; width: 85%; max-width: 420px; padding: 20px; box-shadow: 0 0 30px rgba(255, 126, 179, 0.3); max-height: 90vh; overflow-y: auto; }
@@ -64,8 +70,8 @@
     <div id="avatar-container"></div>
 
     <div id="login-screen">
-        <div class="login-title"> ライト OS</div>
-        <div class="login-desc">合言葉（パスワード）</div>
+        <div class="login-title">✨ ライト OS</div>
+        <div class="login-desc">合言葉（パスワード）を入力してね！</div>
         
         <input type="text" id="login-id-input" placeholder="合言葉を入力">
         <button id="execute-login-btn">起動する</button>
@@ -77,7 +83,7 @@
 
     <div id="main-app">
         <div id="header-bar">
-            <div class="app-title"> ライト</div>
+            <div class="app-title">✨ ライト</div>
             <button id="open-settings-btn" class="icon-btn">⚙️ 設定</button>
         </div>
 
@@ -167,6 +173,15 @@
             document.getElementById('login-id-input').value = "shout";
         }
 
+        // ブラウザの音声自動再生ブロックを解除するためのダミー処理
+        function unlockAudio() {
+            if ('speechSynthesis' in window) {
+                const dummy = new SpeechSynthesisUtterance('');
+                dummy.volume = 0;
+                window.speechSynthesis.speak(dummy);
+            }
+        }
+
         document.getElementById('execute-login-btn').addEventListener('click', () => {
             const inputId = document.getElementById('login-id-input').value.trim();
             if (!inputId) {
@@ -177,6 +192,7 @@
             localStorage.setItem('light_sync_id', myUserId);
             document.getElementById('sync-id-input').value = myUserId;
             
+            unlockAudio(); // 音声再生の事前許可を取得
             loginScreen.style.display = 'none';
             mainApp.style.display = 'flex';
             loadAllData(myUserId);
@@ -189,6 +205,7 @@
 
             alert(`あなた専用の合言葉を作成しました！\n\n【 ${myUserId} 】\n\n※メモしておいてね！`);
             
+            unlockAudio(); // 音声再生の事前許可を取得
             loginScreen.style.display = 'none';
             mainApp.style.display = 'flex';
             loadAllData(myUserId);
@@ -207,7 +224,8 @@
             else div.className = 'msg-user';
             div.innerHTML = `<strong>${name}:</strong> ${text}`;
             chatLog.appendChild(div);
-            chatLog.scrollTop = chatLog.scrollHeight;
+            // スムーズスクロールで常に最新の要素が見えるようにする
+            div.scrollIntoView({ behavior: 'smooth', block: 'end' });
         }
 
         async function loadAllData(userId) {
@@ -232,7 +250,7 @@
                 }
 
                 addLog("システム", "クラウドからのデータの同期が完了しました！", "sys");
-                const msg = "おつかれ〜";
+                const msg = "おっ！部活のルールも個人の記憶も、バッチリ思い出したぜ！";
                 addLog("ライト", msg, "ai");
                 window.speak(msg);
                 updateUI();
@@ -333,11 +351,10 @@
             
             const globalContext = window.globalFacts.length > 0 ? "\n【部活全体で共有されている共通知識・ルール】\n・" + window.globalFacts.join("\n・") : "\n【部活全体で共有されている共通知識・ルール】\n(まだありません)";
             
-            /* プロンプト側の【 】指定を削除しました */
             const systemInstruction = `あなたはユーザーの相棒「電キャ」の「ライト」です。
 性別：女子（ボーイッシュで明るく元気な性格）
 一人称：「あたし」
-基本口調：「〜っしょ！」「〜だ！」「任せろ！」など、フランクで親しみやすい言葉遣い。
+基本口調：「〜っしょ！」「〜だぜ！」「任せとけ！」など、フランクで親しみやすい言葉遣い。
 ${rulesContext}
 ${factsContext}
 ${globalContext}
@@ -397,11 +414,10 @@ ${window.pdfKnowledge}
                 }
             }
 
-            /* 正規表現も強化し、余分な【】が巻き込まれても綺麗に消去するようにしました */
-            aiReply = aiReply.replace(/【?\s*\[REFLECT:\s*.*?\]\s*】?/g, '')
-                             .replace(/【?\s*\[FACT:\s*.*?\]\s*】?/g, '')
-                             .replace(/【?\s*\[GLOBAL:\s*.*?\]\s*】?/g, '')
+            /* タグをきれいに削除し、不要な連続改行も圧縮するよう正規表現を強化 */
+            aiReply = aiReply.replace(/【?\s*\[(REFLECT|FACT|GLOBAL):\s*.*?\]\s*】?/g, '')
                              .replace(/【\s*】/g, '') 
+                             .replace(/\n\s*\n\s*\n/g, '\n\n') /* 3つ以上の空行を2つに圧縮 */
                              .trim();
 
             updateUI();
@@ -419,7 +435,7 @@ ${window.pdfKnowledge}
             if (!text || !text.trim()) return;
             addLog("あなた", text, 'user');
             sendBtn.disabled = true; chatInput.disabled = true; talkBtn.disabled = true;
-            sendBtn.innerHTML = "🧠";
+            sendBtn.innerHTML = "💬..."; // 処理中であることが分かりやすいように変更
             try {
                 const reply = await callGemini(text);
                 addLog("ライト", reply, 'ai');
@@ -448,6 +464,11 @@ ${window.pdfKnowledge}
             recognition.onresult = (e) => {
                 talkBtn.innerHTML = "🔴"; talkBtn.style.background = "linear-gradient(135deg, #ff758c, #ff7eb3)";
                 processUserInput(e.results[0][0].transcript);
+            };
+            // マイクが自動でオフになった時（無音時など）にボタンの色を元に戻す処理を追加
+            recognition.onend = () => {
+                talkBtn.innerHTML = "🔴"; 
+                talkBtn.style.background = "linear-gradient(135deg, #ff758c, #ff7eb3)";
             };
             recognition.onerror = () => { talkBtn.innerHTML = "🔴"; talkBtn.style.background = "linear-gradient(135deg, #ff758c, #ff7eb3)"; };
         } else { talkBtn.style.display = 'none'; }
