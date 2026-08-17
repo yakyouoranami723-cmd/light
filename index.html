@@ -71,10 +71,10 @@
 
     <div id="login-screen">
         <div class="login-title">✨ ライト OS</div>
-        <div class="login-desc">合言葉（パスワード）を入力してね！</div>
+        <div class="login-desc">合言葉（パスワード）を入力 </div>
         
         <input type="text" id="login-id-input" placeholder="合言葉を入力">
-        <button id="execute-login-btn">起動する</button>
+        <button id="execute-login-btn">起動</button>
         
         <div style="margin-bottom: 10px; color: #666; font-size: 12px;">または</div>
         
@@ -249,8 +249,8 @@
                     window.globalFacts = [];
                 }
 
-                addLog("システム", "クラウドからのデータの同期が完了しました！", "sys");
-                const msg = "おっ！部活のルールも個人の記憶も、バッチリ思い出したぜ！";
+                addLog("システム", "クラウドからのデータ同期が完了しました。ライト アクティベート。", "sys");
+                const msg = "よっ！";
                 addLog("ライト", msg, "ai");
                 window.speak(msg);
                 updateUI();
